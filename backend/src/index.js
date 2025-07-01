@@ -8,11 +8,14 @@ import cors from "cors";
 import { app, server } from "./lib/socket.js";
 
 import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
 const PORT = process.env.PORT;
-const __dirname = path.resolve();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
@@ -28,13 +31,13 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
-if (process.env.N0DE_ENV === "production") {
-  app.use(express.Router.static(path.join(__dirname, "../frontend/dist")));
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
-  });
-}
+// Catch-all route to serve index.html
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+});
 
 server.listen(PORT, () => {
   console.log("server is running on PORT :" + PORT);
